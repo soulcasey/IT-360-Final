@@ -55,18 +55,24 @@ class Sphere:
         z_max = cube_z + cube.size / 2 - self.radius
 
         if x_min >= self.position.x:
+            self.position.x = x_min
             self.velocity.x = abs(self.velocity.x)
         elif x_max <= self.position.x:
+            self.position.x = x_max
             self.velocity.x = -abs(self.velocity.x)
         
         if y_min >= self.position.y:
+            self.position.y = y_min
             self.velocity.y = abs(self.velocity.y)
         elif y_max <= self.position.y:
+            self.position.y = y_max
             self.velocity.y = -abs(self.velocity.y)
         
         if z_min >= self.position.z:
+            self.position.z = z_min
             self.velocity.z = abs(self.velocity.z)
         elif z_max <= self.position.z:
+            self.position.z = z_max
             self.velocity.z = -abs(self.velocity.z)
 
 
