@@ -11,8 +11,8 @@ import math
 ROTATE_SPEED = 0.09
 CAMERA_POSITION = (0.0, 0.0, -5)
 
-SPHERE_RADIUS_RANGE = (0.1, 0.4)
-SPHERE_COUNT = 100
+SPHERE_RADIUS_RANGE = (0.1, 0.3)
+SPHERE_COUNT = 60
 SPHERE_SPEED_RANGE = (0.002, 0.004)
 
 CUBE_SIZE = 2.5
@@ -158,14 +158,12 @@ def collision(sphere_1: Sphere, sphere_2: Sphere):
 
         # Resolve overlap by moving spheres apart
         overlap_1 = -collision_distance * sphere_2.radius / (sphere_1.radius + sphere_2.radius)
-        sphere_1.position.x += normal.x * overlap_1
-        sphere_1.position.y += normal.y * overlap_1
-        sphere_1.position.z += normal.z * overlap_1
+        direction_1 = Vector3(normal.x * overlap_1, normal.y * overlap_1, normal.z * overlap_1)
+        sphere_1.move(direction_1)
 
-        overlap_2 = -collision_distance * sphere_1.radius / (sphere_1.radius + sphere_2.radius)
-        sphere_2.position.x -= normal.x * overlap_2
-        sphere_2.position.y -= normal.y * overlap_2
-        sphere_2.position.z -= normal.z * overlap_2
+        overlap_2 = -collision_distance * sphere_2.radius / (sphere_2.radius + sphere_2.radius)
+        direction_2 = Vector3(-normal.x * overlap_2, -normal.y * overlap_2, -normal.z * overlap_2)
+        sphere_2.move(direction_2)
 
 if __name__ == "__main__":
     main()
