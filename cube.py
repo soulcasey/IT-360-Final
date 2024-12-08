@@ -34,7 +34,7 @@ class Cube:
 
         glBegin(GL_LINES)
         
-        glColor3f(0.0, 0.0, 1.0)  # Blue for edges
+        glColor3f(1.0, 1.0, 1.0)
 
         edges = set()
         for surface in self.surfaces:

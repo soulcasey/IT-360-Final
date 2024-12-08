@@ -8,12 +8,12 @@ import numpy as np
 from common import Vector3
 import math
 
-ROTATE_SPEED = 0.06
+ROTATE_SPEED = 0.09
 CAMERA_POSITION = (0.0, 0.0, -5)
 
 SPHERE_RADIUS = 0.1
 SPHERE_COUNT = 150
-SPHERE_SPEED = 0.001
+SPHERE_SPEED = 0.002
 
 CUBE_SIZE = 2.5
 CUBE_POSITION = Vector3(0, 0, 0)
@@ -70,16 +70,25 @@ def main():
         spheres.append(Sphere(new_position, SPHERE_RADIUS, new_velocity))
         possible_positions.pop(random_index) 
 
+    is_auto = True
+
     # Main render loop
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
-        #     glRotatef(ROTATE, 0, -1, 0)
-        # elif glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
-        glRotatef(ROTATE_SPEED, 0, 1, 0)
+
+        if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
+            glRotatef(ROTATE_SPEED, 0, -1, 0)
+            is_auto = False
+        elif glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
+            glRotatef(ROTATE_SPEED, 0, 1, 0)
+            is_auto = False
+        elif glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS:
+            is_auto = True
+        if is_auto:
+            glRotatef(ROTATE_SPEED, 0, 1, 0)
 
         for sphere in spheres:
             sphere: Sphere
