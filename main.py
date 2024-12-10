@@ -11,10 +11,11 @@ import math
 ROTATE_SPEED = 0.09
 CAMERA_POSITION = (0.0, 0.0, -5)
 
-SPHERE_RADIUS_RANGE = (0.1, 0.3)
+SPHERE_RADIUS_RANGE = (0.1, 0.2)
 SPHERE_COUNT = 60
-SPHERE_SPEED_RANGE = (0.002, 0.004)
+SPHERE_SPEED_RANGE = (0.003, 0.007)
 
+EXPLOSION_PUSH_SPEED = 0.02
 CUBE_SIZE = 2.5
 CUBE_POSITION = Vector3(0, 0, 0)
 
@@ -79,12 +80,16 @@ def main():
         if is_valid:
             # Generate velocity and add the sphere if no overlap
             random_speed = random.uniform(*SPHERE_SPEED_RANGE)
-            new_velocity = Vector3(
-                random.choice([-1, 1]) * random_speed,
-                random.choice([-1, 1]) * random_speed,
-                random.choice([-1, 1]) * random_speed
+            random_direction = Vector3(
+                random.choice([-1, 1]),
+                random.choice([-1, 1]),
+                random.choice([-1, 1])
             )
-            spheres.append(Sphere(random_position, random_radius, new_velocity))
+
+            magnitude = math.sqrt(sum(coord ** 2 for coord in random_direction))
+            normalized_direction = Vector3(*tuple(coord / magnitude for coord in random_direction),)
+
+            spheres.append(Sphere(random_position, random_radius, normalized_direction, random_speed))
         else:
             attempt_count += 1
 
@@ -96,7 +101,8 @@ def main():
             elif attempt_count > MAX_ATTEMPT / 2:
                 max_radius = min_radius
 
-    is_auto = True
+    is_auto_rotate = True
+    is_explosion = True
 
     # Main render loop
     while not glfw.window_should_close(window):
@@ -109,24 +115,44 @@ def main():
 
         if glfw.get_key(window, glfw.KEY_LEFT) == glfw.PRESS:
             glRotatef(ROTATE_SPEED * 3, 0, -1, 0)
-            is_auto = False
+            is_auto_rotate = False
         elif glfw.get_key(window, glfw.KEY_RIGHT) == glfw.PRESS:
             glRotatef(ROTATE_SPEED * 3, 0, 1, 0)
-            is_auto = False
+            is_auto_rotate = False
         elif glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS:
-            is_auto = True
-        if is_auto:
+            is_auto_rotate = True
+        if is_auto_rotate:
             glRotatef(ROTATE_SPEED, 0, 1, 0)
+
+        # Create an explosion at the center of the cube that pushes the spheres away based on the distance
+        if glfw.get_key(window, glfw.KEY_A) == glfw.PRESS and is_explosion:
+            is_explosion = False
+            for sphere in spheres:
+                sphere: Sphere
+                normal = Vector3(
+                    sphere.position.x - cube.position.x,
+                    sphere.position.y - cube.position.y,
+                    sphere.position.z - cube.position.z
+                )
+                distance = math.sqrt(normal.x ** 2 + normal.y ** 2 + normal.z ** 2)
+
+                new_speed = EXPLOSION_PUSH_SPEED / distance + EXPLOSION_PUSH_SPEED
+                normalized_direction = Vector3(*tuple(coord / distance for coord in normal),)
+
+                sphere.direction = normalized_direction
+                sphere.current_speed = new_speed
+        if glfw.get_key(window, glfw.KEY_A) == glfw.RELEASE and not is_explosion:
+            is_explosion = True
 
         for sphere in spheres:
             sphere: Sphere
-            sphere.draw(cube)
+            sphere.draw()
 
         cube.draw()
 
         for sphere in spheres:
             sphere: Sphere
-            sphere.move(sphere.velocity)
+            sphere.move()
             sphere.rebound(cube)
         
         for i in range(len(spheres)):

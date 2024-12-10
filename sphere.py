@@ -4,39 +4,38 @@ from cube import Cube
 from common import Vector3
 import random
 
+RECOVERY_RATE = 0.005
+
 class Sphere:
-    def __init__(self, position: Vector3, radius: float, velocity: Vector3):
-        self.velocity = velocity
+    def __init__(self, position: Vector3, radius: float, direction: Vector3, speed: float):
         self.position = position
         self.radius = radius
+        self.direction = direction 
+        self.original_speed = speed
+        self.current_speed = speed
 
         self.quadric = gluNewQuadric()
         gluQuadricDrawStyle(self.quadric, GLU_FILL)
         gluQuadricNormals(self.quadric, GLU_SMOOTH)
 
-        self.color = (random.randrange(1, 100) / 100, random.randrange(1, 100) / 100, random.randrange(1, 100) / 100)
+        self.color = (random.random(), random.random(), random.random())
 
-    def draw(self, cube: Cube = None):
-
+    def draw(self):
         glColor3f(*self.color)
 
         glPushMatrix()
         glTranslatef(self.position.x, self.position.y, self.position.z)
-
         gluSphere(self.quadric, self.radius, 16, 16)
-
         glPopMatrix()
 
     def is_inside(self, cube: Cube):
-
-        cube_x, cube_y, cube_z = *cube.position,
         # Get the cube's bounds
-        x_min = cube_x - cube.size / 2 + self.radius
-        x_max = cube_x + cube.size / 2 - self.radius
-        y_min = cube_y - cube.size / 2 + self.radius
-        y_max = cube_y + cube.size / 2 - self.radius
-        z_min = cube_z - cube.size / 2 + self.radius
-        z_max = cube_z + cube.size / 2 - self.radius
+        x_min = cube.position.x - cube.size / 2 + self.radius
+        x_max = cube.position.x + cube.size / 2 - self.radius
+        y_min = cube.position.y - cube.size / 2 + self.radius
+        y_max = cube.position.y + cube.size / 2 - self.radius
+        z_min = cube.position.z - cube.size / 2 + self.radius
+        z_max = cube.position.z + cube.size / 2 - self.radius
 
         # Check if the sphere is inside the cube considering its radius
         return (x_min <= self.position.x <= x_max) and \
@@ -44,39 +43,49 @@ class Sphere:
                (z_min <= self.position.z <= z_max)
 
     def rebound(self, cube: Cube):
-
-        cube_x, cube_y, cube_z = *cube.position,
         # Get the cube's bounds
-        x_min = cube_x - cube.size / 2 + self.radius
-        x_max = cube_x + cube.size / 2 - self.radius
-        y_min = cube_y - cube.size / 2 + self.radius
-        y_max = cube_y + cube.size / 2 - self.radius
-        z_min = cube_z - cube.size / 2 + self.radius
-        z_max = cube_z + cube.size / 2 - self.radius
+        x_min = cube.position.x - cube.size / 2 + self.radius
+        x_max = cube.position.x + cube.size / 2 - self.radius
+        y_min = cube.position.y - cube.size / 2 + self.radius
+        y_max = cube.position.y + cube.size / 2 - self.radius
+        z_min = cube.position.z - cube.size / 2 + self.radius
+        z_max = cube.position.z + cube.size / 2 - self.radius
 
-        if x_min >= self.position.x:
+        # Handle collisions with cube boundaries
+        if self.position.x < x_min:
             self.position.x = x_min
-            self.velocity.x = abs(self.velocity.x)
-        elif x_max <= self.position.x:
+            self.direction.x = abs(self.direction.x)
+        elif self.position.x > x_max:
             self.position.x = x_max
-            self.velocity.x = -abs(self.velocity.x)
-        
-        if y_min >= self.position.y:
+            self.direction.x = -abs(self.direction.x)
+
+        if self.position.y < y_min:
             self.position.y = y_min
-            self.velocity.y = abs(self.velocity.y)
-        elif y_max <= self.position.y:
+            self.direction.y = abs(self.direction.y)
+        elif self.position.y > y_max:
             self.position.y = y_max
-            self.velocity.y = -abs(self.velocity.y)
-        
-        if z_min >= self.position.z:
+            self.direction.y = -abs(self.direction.y)
+
+        if self.position.z < z_min:
             self.position.z = z_min
-            self.velocity.z = abs(self.velocity.z)
-        elif z_max <= self.position.z:
+            self.direction.z = abs(self.direction.z)
+        elif self.position.z > z_max:
             self.position.z = z_max
-            self.velocity.z = -abs(self.velocity.z)
+            self.direction.z = -abs(self.direction.z)
 
+    def move(self, move_by: Vector3 = None):
 
-    def move(self, direcion: Vector3):
-        self.position.x += direcion.x
-        self.position.y += direcion.y
-        self.position.z += direcion.z
+        if move_by is None:
+            move_by = Vector3(  self.direction.x * self.current_speed,
+                                self.direction.y * self.current_speed,
+                                self.direction.z * self.current_speed)
+
+        # Update position based on direction and speed
+        self.position.x += move_by.x
+        self.position.y += move_by.y
+        self.position.z += move_by.z
+
+        # Gradually restore speed to original
+        if self.current_speed != self.original_speed:
+            speed_diff = self.original_speed - self.current_speed
+            self.current_speed += speed_diff * RECOVERY_RATE
