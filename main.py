@@ -15,7 +15,7 @@ SPHERE_RADIUS_RANGE = (0.1, 0.2)
 SPHERE_COUNT = 60
 SPHERE_SPEED_RANGE = (0.003, 0.007)
 
-EXPLOSION_PUSH_SPEED = 0.02
+EXPLOSION_PUSH_SPEED_RANGE = (0.01, 0.05)
 CUBE_SIZE = 2.5
 CUBE_POSITION = Vector3(0, 0, 0)
 
@@ -136,10 +136,13 @@ def main():
                 )
                 distance = math.sqrt(normal.x ** 2 + normal.y ** 2 + normal.z ** 2)
 
-                new_speed = EXPLOSION_PUSH_SPEED / distance + EXPLOSION_PUSH_SPEED
-                normalized_direction = Vector3(*tuple(coord / distance for coord in normal),)
+                min_speed, max_speed = EXPLOSION_PUSH_SPEED_RANGE
+                new_speed = max_speed - (distance / (cube.size / 2)) * (max_speed - min_speed)
 
-                sphere.direction = normalized_direction
+                if distance != 0:
+                    normalized_direction = Vector3(*tuple(coord / distance for coord in normal),)
+                    sphere.direction = normalized_direction
+
                 sphere.current_speed = new_speed
         if glfw.get_key(window, glfw.KEY_A) == glfw.RELEASE and not is_explosion:
             is_explosion = True
