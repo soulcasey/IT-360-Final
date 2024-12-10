@@ -150,14 +150,15 @@ def main():
 
         cube.draw()
 
-        for sphere in spheres:
-            sphere: Sphere
-            sphere.move()
-            sphere.rebound(cube)
-        
-        for i in range(len(spheres)):
-            for j in range(i + 1, len(spheres)):
-                collision(spheres[i], spheres[j])
+        if glfw.get_key(window, glfw.KEY_S) is not glfw.PRESS:
+            for sphere in spheres:
+                sphere: Sphere
+                sphere.move()
+                sphere.rebound(cube)
+            
+            for i in range(len(spheres)):
+                for j in range(i + 1, len(spheres)):
+                    collision(spheres[i], spheres[j])
         
         glfw.swap_buffers(window)
 
